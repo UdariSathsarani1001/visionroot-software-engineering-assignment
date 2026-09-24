@@ -39,7 +39,7 @@ export const requestService = {
   },
 
   async updateRequest(id: string, input: UpdateRequestInput): Promise<ServiceRequest> {
-    const res = await api.patch<ApiSuccessResponse<ServiceRequest>>(`/requests/${id}`, input);
+    const res = await api.put<ApiSuccessResponse<ServiceRequest>>(`/requests/${id}`, input);
     return res.data.data;
   },
 

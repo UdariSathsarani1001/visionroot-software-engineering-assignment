@@ -59,7 +59,7 @@ function EditRequestContent() {
     setValue,
     watch,
     reset,
-    formState: { errors, isSubmitting, isDirty },
+    formState: { errors, isSubmitting },
   } = useForm<EditForm>({ resolver: zodResolver(editSchema) });
 
   const category = watch("category");
@@ -115,7 +115,7 @@ function EditRequestContent() {
     }
   };
 
-  if (loadingReq) return <LoadingState text="Loading request..." className="min-h-[300px]" />;
+  if (loadingReq) return <LoadingState text="Loading request..." className="min-h-75" />;
 
   if (loadError) {
     return (
@@ -162,7 +162,7 @@ function EditRequestContent() {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
               <div className="space-y-1.5">
                 <Label>Category <span className="text-destructive">*</span></Label>
-                <Select value={category} onValueChange={(v) => setValue("category", v as EditForm["category"], { shouldValidate: true })}>
+                <Select value={category} onValueChange={(v) => setValue("category", v as EditForm["category"], { shouldValidate: true, shouldDirty: true })}>
                   <SelectTrigger className="w-full"><SelectValue /></SelectTrigger>
                   <SelectContent>
                     {CATEGORY_OPTIONS.map((o) => <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>)}
@@ -172,7 +172,7 @@ function EditRequestContent() {
               </div>
               <div className="space-y-1.5">
                 <Label>Priority <span className="text-destructive">*</span></Label>
-                <Select value={priority} onValueChange={(v) => setValue("priority", v as EditForm["priority"], { shouldValidate: true })}>
+                <Select value={priority} onValueChange={(v) => setValue("priority", v as EditForm["priority"], { shouldValidate: true, shouldDirty: true })}>
                   <SelectTrigger className="w-full"><SelectValue /></SelectTrigger>
                   <SelectContent>
                     {PRIORITY_OPTIONS.map((o) => <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>)}
@@ -183,7 +183,7 @@ function EditRequestContent() {
             </div>
 
             <div className="flex gap-3 pt-2">
-              <Button type="submit" disabled={isSubmitting || !isDirty}>
+              <Button type="submit" disabled={isSubmitting}>
                 {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                 Save Changes
               </Button>
