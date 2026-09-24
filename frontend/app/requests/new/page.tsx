@@ -77,7 +77,7 @@ function NewRequestContent() {
   };
 
   return (
-    <div className="space-y-5 max-w-2xl">
+    <div className="space-y-5 mx-auto">
       <PageHeader
         title="New Service Request"
         description="Describe your issue or request in detail"
@@ -93,7 +93,7 @@ function NewRequestContent() {
         <AlertBanner variant="error" title="Submission failed" description={serverError} onClose={() => setServerError(null)} />
       )}
 
-      <Card>
+      <Card className="max-w-7xl mx-auto">
         <CardContent className="pt-6">
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-5" noValidate>
             <div className="space-y-1.5">

@@ -70,7 +70,7 @@ function RequestDetailContent() {
   };
 
   if (loading) {
-    return <LoadingState text="Loading request..." className="min-h-[300px]" />;
+    return <LoadingState text="Loading request..." className="min-h-75" />;
   }
 
   if (error) {
@@ -95,7 +95,7 @@ function RequestDetailContent() {
   const canCancel = request.status === "PENDING" || request.status === "IN_PROGRESS";
 
   return (
-    <div className="space-y-5 max-w-2xl">
+    <div className="space-y-5">
       <PageHeader
         title="Request Details"
         actions={
@@ -105,7 +105,7 @@ function RequestDetailContent() {
         }
       />
 
-      <Card>
+      <Card className="max-w-5xl mx-auto">
         <CardHeader className="pb-3">
           <div className="flex items-start justify-between gap-3">
             <CardTitle className="text-lg leading-snug">{request.title}</CardTitle>

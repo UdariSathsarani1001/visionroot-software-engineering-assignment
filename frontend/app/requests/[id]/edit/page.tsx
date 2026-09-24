@@ -129,7 +129,7 @@ function EditRequestContent() {
   if (!request) return null;
 
   return (
-    <div className="space-y-5 max-w-2xl">
+    <div className="space-y-5">
       <PageHeader
         title="Edit Request"
         description="Update your request details"
@@ -144,7 +144,7 @@ function EditRequestContent() {
         <AlertBanner variant="error" title="Update failed" description={serverError} onClose={() => setServerError(null)} />
       )}
 
-      <Card>
+      <Card className="max-w-7xl mx-auto">
         <CardContent className="pt-6">
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-5" noValidate>
             <div className="space-y-1.5">
