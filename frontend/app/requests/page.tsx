@@ -3,19 +3,19 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Plus, Search, FileText } from "lucide-react";
+import { ColumnDef } from "@tanstack/react-table";
 
 import { ProtectedRoute } from "@/components/layout/ProtectedRoute";
 import { AppShell } from "@/components/layout/AppShell";
 import { PageHeader } from "@/components/common/PageHeader";
-import { EmptyState } from "@/components/common/EmptyState";
 import { AlertBanner } from "@/components/common/AlertBanner";
+import { EmptyState } from "@/components/common/EmptyState";
 import { LinkButton } from "@/components/common/LinkButton";
 import { StatusBadge, PriorityBadge } from "@/components/requests/StatusBadge";
+import { DataTable } from "@/components/ui/data-table";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Skeleton } from "@/components/ui/skeleton";
-import { Card, CardContent } from "@/components/ui/card";
 import { useRequests } from "@/hooks/useRequests";
 import { useDebounce } from "@/hooks/useDebounce";
 import {
@@ -25,7 +25,7 @@ import {
   REQUEST_CATEGORY_LABELS,
   DEFAULT_PAGE_SIZE,
 } from "@/lib/constants";
-import { RequestStatus, RequestCategory, RequestPriority } from "@/types/request";
+import { RequestStatus, RequestCategory, RequestPriority, ServiceRequest } from "@/types/request";
 
 export default function RequestsPage() {
   return (
@@ -67,6 +67,62 @@ function RequestsContent() {
   };
 
   const hasFilters = !!search || !!status || !!category || !!priority;
+
+  const columns: ColumnDef<ServiceRequest, unknown>[] = [
+    {
+      accessorKey: "title",
+      header: "Title",
+      cell: ({ row }: { row: { original: ServiceRequest } }) => (
+        <div>
+          <p className="font-medium truncate max-w-[200px]">{row.original.title}</p>
+          <p className="text-xs text-muted-foreground mt-0.5 sm:hidden">
+            {REQUEST_CATEGORY_LABELS[row.original.category]}
+          </p>
+        </div>
+      ),
+    },
+    {
+      accessorKey: "category",
+      header: "Category",
+      cell: ({ row }: { row: { original: ServiceRequest } }) => (
+        <span className="text-muted-foreground">
+          {REQUEST_CATEGORY_LABELS[row.original.category]}
+        </span>
+      ),
+    },
+    {
+      accessorKey: "priority",
+      header: "Priority",
+      cell: ({ row }: { row: { original: ServiceRequest } }) => <PriorityBadge priority={row.original.priority} />,
+    },
+    {
+      accessorKey: "status",
+      header: "Status",
+      cell: ({ row }: { row: { original: ServiceRequest } }) => <StatusBadge status={row.original.status} />,
+    },
+    {
+      accessorKey: "createdAt",
+      header: "Created",
+      cell: ({ row }: { row: { original: ServiceRequest } }) => (
+        <span className="text-xs text-muted-foreground">
+          {new Date(row.original.createdAt).toLocaleDateString()}
+        </span>
+      ),
+    },
+    {
+      id: "actions",
+      header: "",
+      cell: ({ row }: { row: { original: ServiceRequest } }) => (
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => router.push(`/requests/${row.original._id}`)}
+        >
+          View
+        </Button>
+      ),
+    },
+  ];
 
   return (
     <div className="space-y-5">
@@ -127,103 +183,53 @@ function RequestsContent() {
         />
       )}
 
-      {/* Table */}
-      <Card>
-        <CardContent className="p-0">
-          {loading ? (
-            <div className="space-y-1 p-4">
-              {Array.from({ length: 6 }).map((_, i) => <Skeleton key={i} className="h-14 w-full" />)}
-            </div>
-          ) : data.length === 0 ? (
-            <EmptyState
-              icon={FileText}
-              title={hasFilters ? "No matching requests" : "No requests yet"}
-              description={hasFilters ? "Try adjusting your filters" : "Submit a new request to get started"}
-              className="border-0 min-h-[250px]"
-              action={
-                hasFilters ? (
-                  <Button variant="outline" size="sm" onClick={resetFilters}>Clear filters</Button>
-                ) : (
-                  <LinkButton href="/requests/new" size="sm">
-                    <Plus className="mr-2 h-4 w-4" />New Request
-                  </LinkButton>
-                )
-              }
-            />
-          ) : (
-            <>
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm">
-                  <thead>
-                    <tr className="border-b bg-muted/40">
-                      <th className="text-left font-medium text-muted-foreground px-4 py-3">Title</th>
-                      <th className="text-left font-medium text-muted-foreground px-4 py-3 hidden sm:table-cell">Category</th>
-                      <th className="text-left font-medium text-muted-foreground px-4 py-3 hidden md:table-cell">Priority</th>
-                      <th className="text-left font-medium text-muted-foreground px-4 py-3">Status</th>
-                      <th className="text-left font-medium text-muted-foreground px-4 py-3 hidden lg:table-cell">Created</th>
-                      <th className="px-4 py-3"></th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y">
-                    {data.map((req) => (
-                      <tr key={req._id} className="hover:bg-muted/30 transition-colors">
-                        <td className="px-4 py-3">
-                          <p className="font-medium truncate max-w-[180px]">{req.title}</p>
-                          <p className="text-xs text-muted-foreground sm:hidden mt-0.5">{REQUEST_CATEGORY_LABELS[req.category]}</p>
-                        </td>
-                        <td className="px-4 py-3 hidden sm:table-cell text-muted-foreground">
-                          {REQUEST_CATEGORY_LABELS[req.category]}
-                        </td>
-                        <td className="px-4 py-3 hidden md:table-cell">
-                          <PriorityBadge priority={req.priority} />
-                        </td>
-                        <td className="px-4 py-3">
-                          <StatusBadge status={req.status} />
-                        </td>
-                        <td className="px-4 py-3 hidden lg:table-cell text-muted-foreground text-xs">
-                          {new Date(req.createdAt).toLocaleDateString()}
-                        </td>
-                        <td className="px-4 py-3">
-                          <Button variant="ghost" size="sm" onClick={() => router.push(`/requests/${req._id}`)}>
-                            View
-                          </Button>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+      {!loading && !error && data.length === 0 ? (
+        <EmptyState
+          icon={FileText}
+          title={hasFilters ? "No matching requests" : "No requests yet"}
+          description={hasFilters ? "Try adjusting your filters" : "Submit a new request to get started"}
+          action={
+            hasFilters ? (
+              <Button variant="outline" size="sm" onClick={resetFilters}>Clear filters</Button>
+            ) : (
+              <LinkButton href="/requests/new" size="sm">
+                <Plus className="mr-2 h-4 w-4" />New Request
+              </LinkButton>
+            )
+          }
+        />
+      ) : (
+        <>
+          <DataTable columns={columns} data={data} loading={loading} />
 
-              {/* Pagination */}
-              {meta && meta.totalPages > 1 && (
-                <div className="flex items-center justify-between px-4 py-3 border-t">
-                  <p className="text-sm text-muted-foreground">
-                    Page {meta.page} of {meta.totalPages} · {meta.total} total
-                  </p>
-                  <div className="flex gap-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      disabled={page <= 1}
-                      onClick={() => setPage((p) => Math.max(1, p - 1))}
-                    >
-                      Previous
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      disabled={page >= meta.totalPages}
-                      onClick={() => setPage((p) => p + 1)}
-                    >
-                      Next
-                    </Button>
-                  </div>
-                </div>
-              )}
-            </>
+          {/* Server-side pagination */}
+          {meta && meta.totalPages > 1 && (
+            <div className="flex items-center justify-between">
+              <p className="text-sm text-muted-foreground">
+                Page {meta.page} of {meta.totalPages} · {meta.total} total
+              </p>
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  disabled={page <= 1}
+                  onClick={() => setPage((p) => Math.max(1, p - 1))}
+                >
+                  Previous
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  disabled={page >= meta.totalPages}
+                  onClick={() => setPage((p) => p + 1)}
+                >
+                  Next
+                </Button>
+              </div>
+            </div>
           )}
-        </CardContent>
-      </Card>
+        </>
+      )}
     </div>
   );
 }
